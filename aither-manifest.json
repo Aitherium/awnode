@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1",
+  "name": "awnode",
+  "description": "A lightweight local gateway — bridges your apps to the AI backends you chose.",
+  "url": "https://aitherium.github.io/awnode/",
+  "repository": "https://github.com/Aitherium/awnode",
+  "kind": "runtime",
+  "status": "public",
+  "adopt": "Run it once and point one app at it instead of a vendor URL.",
+  "pairs_with": [
+    "awdk",
+    "aitherkvcache"
+  ],
+  "includes": []
+}
