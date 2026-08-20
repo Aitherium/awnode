@@ -74,7 +74,7 @@ POST /connect         — Register with Elysium
 
 ---
 
-<!-- aither-ecosystem:start GENERATED from AitherOS/config/ecosystem.yaml by AitherOS/dev/tools/publish_ecosystem_surfaces.py. Edits here are overwritten; change the registry instead. -->
+<!-- aither-ecosystem:start GENERATED from the ecosystem registry. Edits here are overwritten; change the registry instead. -->
 
 ## The aw family
 
