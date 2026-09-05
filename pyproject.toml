@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+# DISTRIBUTION name only. The import package stays `aithernode` and so do the
+# console scripts (`aithernode`, `aithernode-mcp`) -- safe-bulk-rename §8: a
+# distribution rename changes the INSTALL LINE; renaming the import and the
+# commands changes everything our users type. `pip install awnode` then
+# `import aithernode` is the ordinary shape (pillow/PIL), and it means an
+# existing user upgrading loses nothing.
+# The old name keeps resolving via the redirect package in `aithernode-shim/`.
+name = "awnode"
+version = "0.3.0"
+description = "awnode — lightweight local gateway for AitherOS"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Aitherium", email = "hello@aitherium.com" }]
+keywords = ["ai", "agents", "aitheros", "mcp", "gateway"]
+
+dependencies = [
+    "awdk>=1.3.0",
+    "httpx>=0.26.0",
+    "pyyaml>=6.0",
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    # <2.0.0 pinned deliberately: mcp_server.py uses the 1.x low-level
+    # Server API (@server.list_tools() / @server.call_tool()), which 2.0
+    # removed entirely in favor of MCPServer's per-tool @server.tool()
+    # decorator (see AitherOS/packages/awgraph/awgraph/mcp_server.py's own
+    # docstring for the same cutover). Unpinned, `mcp>=1.0.0` silently
+    # resolved to 2.0.0 and `test` died at collection with "'Server' object
+    # has no attribute 'list_tools'" the first time CI ever got far enough
+    # to import this module — a real drift the workflow's own setup-python
+    # failure had been hiding, not something this pin causes. Migrating to
+    # the 2.x API is real follow-up work, not a version-string fix.
+    "mcp>=1.0.0,<2.0.0",
+]
+
+# No Repository/Documentation entry: Aitherium/awnode is a PRIVATE
+# "collaborator surface" mirror (measured 2026-08-19 via `gh repo view`), so a
+# public link would point strangers at a 404/login wall — worse than no link.
+# awdk/awrelay/awgit/awgraph/aitherkvcache/awskills/AitherZero all
+# aither-adk/awrelay/awgit/awgraph/aitherkvcache/aither-skills/AitherZero all
+# have a real public source mirror and set all three fields; this package does
+# not yet, and that is an open decision (flip the repo public to match its
+# siblings, or accept PyPI-only distribution) — not something to fake here.
+[project.urls]
+Homepage = "https://aitherium.com"
+
+[project.optional-dependencies]
+ollama = ["ollama>=0.1.0"]
+sse = ["starlette>=0.27.0"]
+all = ["awnode[ollama,sse]"]
+
+[project.scripts]
+awnode = "awnode.cli:main"
+awnode-mcp = "awnode.mcp_server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["awnode"]
