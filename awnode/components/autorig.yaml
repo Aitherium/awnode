@@ -1,0 +1,25 @@
+# AutoRig -- moved here 2026-09-06 from awnode/awnode/extensions.py BUILTIN_CATALOG
+# (the last hardcoded 'what can run here' list). awnode's ExtensionManager now reads
+# the awdk addon loader, so this file is what `awnode ext start autorig` runs.
+# Fields map 1:1 from the old dataclass; `type: external` was `remote`.
+id: autorig
+name: AutoRig
+type: docker
+default_port: 8794
+description: Automatic 3D character rigging via Blender Rigify. GLB in, rigged GLB
+  out.
+requires_plan: free
+dependencies:
+- comfyui-3d
+health_check:
+  path: /health
+  interval: 30s
+offline_mode: true
+image: aitherium/aither-autorig:latest
+ports:
+  autorig: 8794
+  rigify: 8792
+tools:
+- rig_mesh
+- character_pipeline_status
+category: creative

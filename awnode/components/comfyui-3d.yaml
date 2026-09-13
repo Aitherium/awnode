@@ -1,0 +1,25 @@
+# ComfyUI 3D -- moved here 2026-09-06 from awnode/awnode/extensions.py BUILTIN_CATALOG
+# (the last hardcoded 'what can run here' list). awnode's ExtensionManager now reads
+# the awdk addon loader, so this file is what `awnode ext start comfyui-3d` runs.
+# Fields map 1:1 from the old dataclass; `type: external` was `remote`.
+id: comfyui-3d
+name: ComfyUI 3D
+type: docker
+default_port: 8289
+description: 3D model generation (Hunyuan3D). Converts images to 3D meshes (GLB).
+requires_plan: free
+dependencies: []
+health_check:
+  path: /
+  interval: 30s
+offline_mode: true
+image: aitherium/aither-comfyui-3d:latest
+ports:
+  comfyui3d: 8289
+resources:
+  gpu: true
+  vram_gb: 8
+tools:
+- generate_character_3d
+- image_to_3d
+category: creative
