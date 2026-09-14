@@ -1,0 +1,43 @@
+# Permanent redirect package: `aithernode` -> `awnode`.
+#
+# DO NOT let a rename sweep touch the `name` field. The literal string
+# "aithernode" here is LOAD-BEARING: it is the entire reason this package
+# exists. A tree-wide s/aithernode/awnode/ turns this into a second package
+# called "awnode" that depends on itself and redirects nobody.
+#
+# PyPI has no rename and `aithernode` shipped 4 releases (latest 0.2.5), so
+# `pip install aithernode` must keep resolving to a working install forever.
+#
+# UNLIKE the awdk stub, the command names DID change here: `aithernode` and
+# `aithernode-mcp` became `awnode` and `awnode-mcp`, and the import name moved
+# from `aithernode` to `awnode`. This stub therefore cannot make old commands or
+# old imports keep working - it only guarantees the install succeeds and points
+# at the right place. That difference is called out in the README rather than
+# papered over, because a user who upgrades and finds `aithernode: command not
+# found` needs to be told what to type instead.
+#
+# Keep `version` at or above the newest `awnode` release and the dependency pin
+# at that same version, or `pip install aithernode` silently resolves an older
+# awnode than the one this stub was cut alongside.
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+# The old name. Never rewrite this line. See the header.
+name = "aithernode"
+version = "0.3.0"
+description = "Deprecated alias for awnode - installs awnode, which provides the awnode command."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["awnode>=0.3.0"]
+
+[project.urls]
+Homepage = "https://github.com/Aitherium/AitherOS"
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true
+
+[tool.hatch.build.targets.sdist]
+include = ["README.md", "pyproject.toml"]
