@@ -1,0 +1,36 @@
+# AitherCanvas -- moved here 2026-09-06 from awnode/awnode/extensions.py BUILTIN_CATALOG
+# (the last hardcoded 'what can run here' list). awnode's ExtensionManager now reads
+# the awdk addon loader, so this file is what `awnode ext start canvas` runs.
+# Fields map 1:1 from the old dataclass; `type: external` was `remote`.
+id: canvas
+name: AitherCanvas
+type: docker
+default_port: 8108
+description: AI image generation powered by ComfyUI. Supports txt2img, img2img, inpainting,
+  outpainting.
+requires_plan: free
+dependencies: []
+health_check:
+  path: /health
+  interval: 30s
+offline_mode: true
+image: aitherium/aither-canvas:latest
+ports:
+  canvas: 8108
+  comfyui: 8188
+env_defaults:
+  COMFYUI_URL: http://localhost:8188
+resources:
+  gpu: true
+  vram_gb: 6
+tools:
+- generate_image
+- refine_image
+- inpaint_image
+- outpaint_image
+- generate_batch
+- list_workflows
+- smart_generate
+agents:
+- iris
+category: creative

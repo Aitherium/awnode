@@ -1,0 +1,26 @@
+# Stable Diffusion WebUI -- moved here 2026-09-06 from awnode/awnode/extensions.py BUILTIN_CATALOG
+# (the last hardcoded 'what can run here' list). awnode's ExtensionManager now reads
+# the awdk addon loader, so this file is what `awnode ext start sd-webui` runs.
+# Fields map 1:1 from the old dataclass; `type: external` was `remote`.
+id: sd-webui
+name: Stable Diffusion WebUI
+type: docker
+default_port: 7860
+description: AUTOMATIC1111 SD WebUI with API mode. Alternative to ComfyUI.
+requires_plan: free
+dependencies: []
+health_check:
+  path: /sdapi/v1/progress
+  interval: 30s
+offline_mode: true
+image: aitherium/sd-webui:latest
+ports:
+  sdwebui: 7860
+resources:
+  gpu: true
+  vram_gb: 4
+tools:
+- sd_txt2img
+- sd_img2img
+- sd_extra_single
+category: creative

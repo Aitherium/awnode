@@ -1,0 +1,27 @@
+# AitherMuse -- moved here 2026-09-06 from awnode/awnode/extensions.py BUILTIN_CATALOG
+# (the last hardcoded 'what can run here' list). awnode's ExtensionManager now reads
+# the awdk addon loader, so this file is what `awnode ext start muse` runs.
+# Fields map 1:1 from the old dataclass; `type: external` was `remote`.
+id: muse
+name: AitherMuse
+type: docker
+default_port: 8190
+description: AI audio synthesis -- music generation (MusicGen), sound effects (AudioLDM2),
+  voice.
+requires_plan: free
+dependencies: []
+health_check:
+  path: /health
+  interval: 30s
+offline_mode: true
+image: aitherium/aither-creative-engine:latest
+ports:
+  muse: 8190
+resources:
+  gpu: true
+  vram_gb: 4
+tools:
+- generate_music
+- generate_sfx
+- text_to_speech
+category: creative
