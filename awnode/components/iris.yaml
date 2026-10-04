@@ -1,0 +1,24 @@
+# Iris Agent -- moved here 2026-09-06 from awnode/awnode/extensions.py BUILTIN_CATALOG
+# (the last hardcoded 'what can run here' list). awnode's ExtensionManager now reads
+# the awdk addon loader, so this file is what `awnode ext start iris` runs.
+# Fields map 1:1 from the old dataclass; `type: external` was `remote`.
+id: iris
+name: Iris Agent
+type: external
+default_port: 8108
+description: Creative AI agent -- image generation, design, visual content production.
+requires_plan: free
+dependencies:
+- canvas
+health_check:
+  path: /health
+  interval: 30s
+offline_mode: true
+endpoint: http://localhost:8108
+tools:
+- generate_image
+- design_system_generate
+- smart_generate
+agents:
+- iris
+category: agent
