@@ -1,0 +1,22 @@
+# Ollama -- moved here 2026-09-06 from awnode/awnode/extensions.py BUILTIN_CATALOG
+# (the last hardcoded 'what can run here' list). awnode's ExtensionManager now reads
+# the awdk addon loader, so this file is what `awnode ext start ollama` runs.
+# Fields map 1:1 from the old dataclass; `type: external` was `remote`.
+id: ollama
+name: Ollama
+type: process
+default_port: 11434
+description: Local LLM inference server. Pull and run open models.
+requires_plan: free
+dependencies: []
+health_check:
+  path: /api/tags
+  interval: 30s
+offline_mode: true
+command: ollama serve
+tools:
+- ollama_chat
+- ollama_generate
+- ollama_list_models
+- ollama_pull_model
+category: inference
