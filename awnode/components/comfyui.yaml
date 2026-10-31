@@ -1,0 +1,30 @@
+# ComfyUI -- moved here 2026-09-06 from awnode/awnode/extensions.py BUILTIN_CATALOG
+# (the last hardcoded 'what can run here' list). awnode's ExtensionManager now reads
+# the awdk addon loader, so this file is what `awnode ext start comfyui` runs.
+# Fields map 1:1 from the old dataclass; `type: external` was `remote`.
+id: comfyui
+name: ComfyUI
+type: docker
+default_port: 8188
+description: Standalone ComfyUI server for custom workflows. Use with Canvas or directly.
+requires_plan: free
+dependencies: []
+health_check:
+  path: /
+  interval: 30s
+offline_mode: true
+# A PUBLIC upstream build by default, so `awnode ext start comfyui` works on a box
+# that has never seen our registry. Run your own image by setting the variable
+# named in image_env (e.g. an image from your own registry).
+image: yanwk/comfyui-boot:cu126-slim
+image_env: AWNODE_COMFYUI_IMAGE
+ports:
+  comfyui: 8188
+resources:
+  gpu: true
+  vram_gb: 4
+tools:
+- comfyui_queue_prompt
+- comfyui_get_history
+- comfyui_upload_image
+category: creative
