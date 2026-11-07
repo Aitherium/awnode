@@ -1,0 +1,24 @@
+# AitherDesign -- moved here 2026-09-06 from awnode/awnode/extensions.py BUILTIN_CATALOG
+# (the last hardcoded 'what can run here' list). awnode's ExtensionManager now reads
+# the awdk addon loader, so this file is what `awnode ext start design` runs.
+# Fields map 1:1 from the old dataclass; `type: external` was `remote`.
+id: design
+name: AitherDesign
+type: external
+default_port: 8001
+description: Design system tools -- tokens, linting, export to Tailwind/DTCG, storyboards.
+requires_plan: free
+dependencies: []
+health_check:
+  path: /health
+  interval: 30s
+offline_mode: true
+endpoint: http://localhost:8001
+tools:
+- design_system_generate
+- plan_storyboard
+- design_to_code
+- get_design_tokens
+- lint_design_system
+- export_design_tokens
+category: tool
