@@ -1,0 +1,131 @@
+# Publish awnode to PyPI — FROM THE awnode REPO, which is where it belongs.
+#
+# Owner, 2026-09-20: "we don't publish out of this repo — it would publish out of the awnode
+# repo." Correct, and it explains the failure this file fixes. The monorepo lane
+# (AitherOS/.github/workflows/publish-awnode.yml) asked PyPI to mint a token and got:
+#
+#   invalid-publisher: valid token, but no corresponding publisher
+#                      (Publisher with matching claims was not found)
+#
+# PyPI matches a trusted publisher on the REPOSITORY and the WORKFLOW FILENAME. A publisher
+# scoped to Aitherium/awnode can never be matched by a workflow running in Aitherium/AitherOS,
+# whatever that lane is named — so the monorepo path was refused by construction, not by
+# misconfiguration.
+#
+# This file lives in the monorepo at `awnode/.github/workflows/publish.yml` and reaches
+# Aitherium/awnode through the surface-sync lane (sync-veil-frontend.yml, matrix leg
+# `src: awnode -> repo: awnode`), which does `git add -A` in that directory and force-pushes it.
+# Editing it in the MIRROR would be undone by the next sync; the source is the only durable home.
+#
+# It also answers the runner question: Aitherium/awnode is a PUBLIC repo, so GitHub-hosted
+# minutes here are free. The monorepo is private, where they are metered — which is why that
+# side pins self-hosted and why ~45 brick publishes queue behind the local pool.
+#
+# dry_run defaults to FALSE on purpose. The monorepo lane defaults it to "true", and three
+# dispatches on 2026-09-20 built, tested and uploaded NOTHING while reporting success — a green
+# run that publishes nothing is the most expensive kind of pass.
+
+name: Publish awnode
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build and check only — do not upload"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write # PyPI trusted publishing
+
+concurrency:
+  # Never cancel a publish mid-flight: an interrupted upload can leave a version
+  # half-published, and PyPI will not accept that version again.
+  group: publish-awnode-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # PyPI rejected the mint with `environment: MISSING` while every other claim matched
+    # (repository Aitherium/awnode, workflow_ref .../publish.yml@refs/heads/main), so the
+    # configured publisher pins an environment and a job without one can never satisfy it.
+    environment: pypi
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Version under release
+        id: v
+        run: |
+          v=$(grep -m1 -E '^version[[:space:]]*=' pyproject.toml | tr -d ' "' | cut -d= -f2)
+          if [ -z "$v" ]; then
+            echo "::error::could not read version from pyproject.toml — refusing to publish an unnamed artifact."
+            exit 1
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "awnode $v"
+
+      - name: Is this version already on PyPI?
+        id: check
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' \
+            "https://pypi.org/pypi/awnode/${{ steps.v.outputs.version }}/json")
+          if [ "$code" = "200" ]; then
+            echo "::notice::awnode ${{ steps.v.outputs.version }} is already on PyPI — nothing to upload."
+            echo "status=exists" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=new" >> "$GITHUB_OUTPUT"
+          fi
+
+      # BOTH, and each for its own reason. pytest explicitly, because awnode declares no [dev]
+      # extra (its optional groups are ollama/sse/all) and the first run of this lane died on
+      # "No module named pytest". And the [dev] extra when one exists, because awgraph's release
+      # failed on "async def functions are not natively supported" -- pytest-asyncio lives in
+      # exactly such an extra, and installing only pytest would reproduce that failure here.
+      - name: Install the package and its test tooling
+        if: steps.check.outputs.status == 'new'
+        run: |
+          python -m pip install --quiet --upgrade pip build pytest
+          python -m pip install --quiet ".[dev]" || python -m pip install --quiet .
+          python -m pytest --version
+
+      - name: Tests
+        if: steps.check.outputs.status == 'new'
+        run: |
+          if [ ! -d tests ]; then
+            echo "::warning::awnode ships no tests/ directory — publishing on the build alone."
+            exit 0
+          fi
+          python -m pytest tests -q
+
+      - name: Build
+        if: steps.check.outputs.status == 'new'
+        run: python -m build
+
+      - name: Publish to PyPI (trusted publishing)
+        if: steps.check.outputs.status == 'new' && inputs.dry_run != true
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      # A green upload step and an installable package are different claims.
+      - name: Verify the version actually landed
+        if: steps.check.outputs.status == 'new' && inputs.dry_run != true
+        run: |
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' \
+              "https://pypi.org/pypi/awnode/${{ steps.v.outputs.version }}/json")
+            if [ "$code" = "200" ]; then
+              echo "awnode ${{ steps.v.outputs.version }} is served by PyPI."
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::uploaded, but PyPI does not serve awnode ${{ steps.v.outputs.version }} after 5 minutes."
+          exit 1
